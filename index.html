@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
+        .container {
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+        .button {
+            background-color: #ff6f61;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .button:hover {
+            background-color: #ff4c3b;
+        }
+        .question {
+            margin: 20px 0;
+        }
+        .answer {
+            display: block;
+            background-color: #ff6f61;
+            border: none;
+            color: white;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .answer:hover {
+            background-color: #ff4c3b;
+        }
+        .score-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .scoreboard {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(90deg, #76c7c0, #4caf50);
+            border-radius: 20px;
+            position: relative;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+        .score-segment {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s;
+        }
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+        .share-buttons {
+            margin-top: 20px;
+        }
+        .share-button {
+            background-color: #25D366; /* WhatsApp */
+            border: none;
+            color: white;
+            padding: 15px 30px; /* Increased padding for larger buttons */
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s; /* Added transform for hover effect */
+            width: 100%;
+            font-size: 18px; /* Increased font size */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Added shadow for glitter effect */
+        }
+        .share-button:hover {
+            background-color: #128C7E;
+            transform: scale(1.05); /* Slightly enlarge on hover */
+        }
+        .share-button.instagram {
+            background-color: #E1306C; /* Instagram */
+        }
+        .share-button.instagram:hover {
+            background-color: #C13584;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        #answers-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #retry-button {
+            font-size: 14px; /* Smaller font size for retry button */
+            padding: 10px 20px; /* Adjusted padding */
+        }
+        .blink-green {
+            animation: blink-green 0.5s forwards;
+        }
+        .blink-red {
+            animation: blink-red 0.5s forwards;
+        }
+        @keyframes blink-green {
+            0% { background-color: #4caf50; }
+            100% { background-color: #ff6f61; }
+        }
+        @keyframes blink-red {
+            0% { background-color: #f44336; }
+            100% { background-color: #ff6f61; }
+        }
+        .correct {
+            background-color: #4caf50; /* Green for correct answer */
+        }
+        .incorrect {
+            background-color: #f44336; /* Red for incorrect answer */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="welcome-page">
+    <h1>Welcome to Relatable Games! 🎮</h1>
+    <p>Dive into a world of fun, safe, and exciting games made just for you! 🚀🎉!</p>
+    <button class="button" id="start-button">Start</button>
+</div>
+
+<div class="container" id="quiz-page" style="display: none;">
+    <div class="question" id="question-container"></div>
+    <div id="answers-container"></div>
+    <div class="button-container">
+        <button class="button" id="back-button" style="width: 48%;">Back</button>
+        <button class="button" id="next-button" style="width: 48%;">Next</button>
+    </div>
+    <div id="feedback" style="margin-top: 20px;"></div>
+</div>
+
+<div class="container score-container" id="score-page" style="display: none;">
+    <h2>Your Score</h2>
+    <div class="scoreboard">
+        <div class="score-segment" id="score-segment" style="width: 0%;"></div>
+        <div class="score-text" id="score-text">0/5</div>
+    </div>
+    <h2>🎉 Game Over!</h2>
+    <h1>HIT the share button🚀AND CHALLENGE YOUR FRIENDS 😊</h1>
+    <div class="share-buttons">
+        <button class="share-button" onclick="shareWhatsApp()">Share on Whats App</button>
+        <button class="share-button instagram" onclick="shareInstagram()">Share on Instagram</button>
+    </div>
+    <button class="button" id="retry-button">Retry</button>
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "1. When you’re struggling to heal from emotional pain, what’s the most important thing you should focus on?",
+            answers: ["a) Blocking out all memories of the hurt.", "b) Finding ways to distract yourself from your emotions.", "c) Allowing yourself to feel the pain and seek support.", "d) Forgetting about it as quickly as possible."],
+            correct: 2,
+            explanation: "True healing starts with acknowledging and feeling the pain rather than avoiding it. It’s okay to grieve, and seeking help or talking to someone who understands can make the process more manageable and less isolating."
+        },
+        {
+            question: "2. What is the relationship between stress and sleep?",
+            answers: ["a) Stress can improve the quality of your sleep.", "b) Stress has no impact on sleep", "c) Chronic stress can lead to sleep disturbances, like insomnia.", "d) Stress makes you sleep longer, but less restfully."],
+            correct: 2,
+            explanation: "Chronic stress can interfere with sleep patterns, making it difficult to fall asleep or stay asleep."
+        },
+        {
+            question: "3. What is the 50/30/20 rule in money management?",
+            answers: ["a) 50% on needs, 30% on wants, 20% on savings/investments.", "b) 50% on shopping, 30% on rent, 20% on entertainment.", "c) 50% on savings, 30% on expenses, 20% on charity.", "d) 50% on food, 30% on transport, 20% on fun."],
+            correct: 0,
+            explanation: "The 50/30/20 rule suggests allocating 50% of your income to needs, 30% to wants, and 20% to savings or debt repayment."
+        },
+        {
+            question: "4. If you are caught in a wildfire while outdoors, what should you do?",
+            answers: ["a) Run uphill to escape the flames.", "b) Find a body of water to take cover in.", "c)  Breathe deeply to stay calm.", "d) Try to outrun the fire."],
+            correct: 1,
+            explanation: "Reporting the crime to authorities is the correct action to take in such situations."
+        },
+        {
+            question: "5. If a knife or sharp object is stuck in your body, what is the best action?",
+            answers: ["a) Pull it out immediately.", "b) Press directly on the object.", "c) Leave it in and apply pressure around the wound.", "d) Make the person walk."],
+            correct: 2,
+            explanation: "Removing the object can cause severe bleeding. Keeping it in place prevents further damage. Apply pressure around (not on) the wound and call for emergency help."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false; // Track if the question has been answered
+
+    document.getElementById('start-button').addEventListener('click', function() {
+        document.getElementById('welcome-page').style.display = 'none';
+        document.getElementById('quiz-page').style.display = 'block';
+        loadQuestion();
+    });
+
+    document.getElementById('back-button').addEventListener('click', function() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            loadQuestion();
+        }
+    });
+
+    function loadQuestion() {
+        const questionContainer = document.getElementById('question-container');
+        const answersContainer = document.getElementById('answers-container');
+        const feedback = document.getElementById('feedback');
+        feedback.innerHTML = '';
+        answered = false; // Reset answered status for the new question
+        const currentQuestion = questions[currentQuestionIndex];
+        questionContainer.innerText = currentQuestion.question;
+        answersContainer.innerHTML = '';
+        currentQuestion.answers.forEach((answer, index) => {
+            const button = document.createElement('button');
+            button.innerText = answer;
+            button.className = 'answer';
+            button.addEventListener('click', () => selectAnswer(index, button));
+            answersContainer.appendChild(button);
+        });
+        document.getElementById('next-button').style.display = 'block'; // Always show Next button
+    }
+
+    function selectAnswer(index, button) {
+        if (answered) return; // Prevent further selections if already answered
+
+        const currentQuestion = questions[currentQuestionIndex];
+        const feedback = document.getElementById('feedback');
+        answered = true; // Mark as answered
+
+        // Disable all answer buttons after selection
+        const answerButtons = document.querySelectorAll('.answer');
+        answerButtons.forEach(btn => btn.disabled = true);
+
+        if (index === currentQuestion.correct) {
+            score++;
+            feedback.innerHTML = `Correct!`;
+            feedback.innerHTML += ` ${currentQuestion.explanation}`; // Show explanation only if correct
+            button.classList.add('blink-green');
+        } else {
+            feedback.innerHTML = 'Incorrect'; // No explanation shown for incorrect answers
+            button.classList.add('blink-red');
+            // Highlight the correct answer
+            answerButtons[currentQuestion.correct].classList.add('correct');
+        }
+
+        // Highlight the correct answer if the selected answer is incorrect
+        if (index !== currentQuestion.correct) {
+            answerButtons[currentQuestion.correct].classList.add('correct');
+        }
+
+        setTimeout(() => {
+            button.classList.remove('blink-green', 'blink-red');
+        }, 500);
+    }
+
+    document.getElementById('next-button').addEventListener('click', function () {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showScore();
+        }
+    });
+
+    function showScore() {
+        document.getElementById('quiz-page').style.display = 'none';
+        document.getElementById('score-page').style.display = 'block';
+        const scoreText = document.getElementById('score-text');
+        scoreText.innerText = `${score}/5`; // Display the score correctly
+        const scoreSegment = document.getElementById('score-segment');
+        scoreSegment.style.width = `${(score / questions.length) * 100}%`; // Ensure the width is based on the number of questions
+    }
+
+    function shareWhatsApp() {
+        const message = `I scored ${score}/5 on THIS GAME 🎮! relatablegames.netlify.app Check this out!`;
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    }
+
+/************* 
+/*************  ✨ Codeium Command ⭐  *************/
+    /**
+     * Shares the score on Instagram. Note that Instagram does not support 
+     * direct sharing from the web. This function will alert the user to copy
+     * the message manually.
+     * @param {number} score - the score to share
+     */
+/******  cead8aa2-721e-4aba-b852-a82b7cdfa662  *******/
+    function shareInstagram() {
+        const message = `I scored ${score}/5 ON THIS GAME 🎮 ! relatablegames.netlify.app Check this out!`;
+        alert("Instagram sharing is not supported directly. Please share the message manually: " + message);
+    }
+
+    document.getElementById('retry-button').addEventListener('click', function() {
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById('score-page').style.display = 'none';
+        document.getElementById('welcome-page').style.display = 'block';
+    });
+</script>
+
+</body>
+</html>
